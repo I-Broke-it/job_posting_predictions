@@ -3,7 +3,6 @@
 library(tm) #text mining library (removing stopwords, etc), delete if unnecessary
 library(plyr) #dataframe manipulation library
 library(dplyr) #dataframe manipulation library
-library(magrittr) #for more readable code
 library(tableHTML) #for viewing dataframes in browser (I don't like rstudio, sue me)
 
 jp <- read.csv('fake_job_postings.csv')
@@ -30,6 +29,8 @@ unique(jp$fraudulent)
 sum(jp$fraudulent)/dim(jp)[1] #gives % of fraudulent==TRUE in the dataset
 #alternatively...
 table(jp$fraudulent) #gives contingency table for fraudulent feature
+#<TODO> consider adding proportions to the contingency table
+
 
 #since only 4% of the records are fraudulent,
 #the dataset needs rebalancing
@@ -38,10 +39,11 @@ table(jp$fraudulent) #gives contingency table for fraudulent feature
 #rebalance at 50/50 on 'fraudulent' attribute
 jp_rebal <- 
   get_resample(jp, 'fraudulent', 1, .5) %>% 
-  rbind(jp)
+  rbind(jp, .)
 
 #sorting by index field
-jp_rebal <- jp_rebal[order(jp_rebal$index),]
+#might not be necessary with new placeholder arg on line 42
+#jp_rebal <- jp_rebal[order(jp_rebal$index),]
 
 sum(jp_rebal$fraudulent)/dim(jp_rebal)[1]
 #alternatively...
@@ -51,6 +53,26 @@ table(jp_rebal$fraudulent)
 #END DATA RESAMPLING AND REBALANCING
 
 #<TODO> <OBSCENITY> split on '-' and finish this pain-in-the-ass binning
+#some troublesomeentries in jp_rebal$salary_range contain non-numeric characters such
+#as 'Nov', 'Dec', etc...
+#first we identify acceptable entries via regular expression
+#we create a list of jp_rebal indices for acceptable salary ranges
+
+acceptable_salary_ranges <- 
+    regexpr("[[:digit:]]+[-][[:digit:]]", jp_rebal$salary_range) > 0 
+
+#removing NA's from acceptable salary index list
+acceptable_salary_ranges <- acceptable_salary_ranges & 
+                            !is.na(jp_rebal$salary_range)
+
+#now we check that we can subset and identify unacceptable salary ranges
+#save for entries marked NA
+jp_rebal[!acceptable_salary_ranges,]$salary_range %>%
+    unique()
+
+#clearly the resulting cells contain misleading data
+#so we replace their contents with NA
+jp_rebal[!acceptable_salary_ranges,]$salary_range  <- NA
 
 #BEGIN MISSING AND MISLEADING DATA HANDLING
 #changing problematic column name ('function.' -> 'func')
@@ -62,8 +84,8 @@ jp_rebal <- apply(jp_rebal, MARGIN = 2, as.character)
 jp_rebal <- 
     apply(jp_rebal, MARGIN = 2, function(x){
         x <- as.character(x)
-        x <- ifelse(test=x=='',
-        yes=NA,no=x)}) %>%
+        x <- ifelse(test=x=='', yes=NA,no=x)}) %>%
+        
     as.data.frame()
 
 #verify blank replacement was successful
