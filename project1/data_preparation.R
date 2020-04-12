@@ -11,12 +11,12 @@ jp <- read.csv('fake_job_postings.csv')
 #returns new sample from given df, where p is 
 #the desired percentage of rare records
 get_resample <- function(df, resampled_feature, rare_val, p){
-  num_records <- dim(df)[1]
-  rares_idx = which(df[resampled_feature] == rare_val)
-  num_rares <- length(rares_idx)
-  x <- ((p*num_records) - num_rares)/(1-p)
-  resample_idx <- sample(x = rares_idx, size = x, replace=TRUE)
-  return(df[resample_idx,])
+	num_records <- dim(df)[1]
+	rares_idx = which(df[resampled_feature] == rare_val)
+	num_rares <- length(rares_idx)
+	x <- ((p*num_records) - num_rares)/(1-p)
+	resample_idx <- sample(x = rares_idx, size = x, replace=TRUE)
+	return(df[resample_idx,])
 }
 #END HELPER FUNCTIONS
 
@@ -52,29 +52,51 @@ table(jp_rebal$fraudulent)
 #fake-to-real ratio for the 'fraudulent' feature
 #END DATA RESAMPLING AND REBALANCING
 
-#<TODO> <OBSCENITY> split on '-' and finish this pain-in-the-ass binning
-#some troublesomeentries in jp_rebal$salary_range contain non-numeric characters such
+#BEGIN MISSING AND MISLEADING DATA HANDLING
+#some troublesome entries in jp_rebal$salary_range contain non-numeric characters such
 #as 'Nov', 'Dec', etc...
 #first we identify acceptable entries via regular expression
 #we create a list of jp_rebal indices for acceptable salary ranges
 
 acceptable_salary_ranges <- 
-    regexpr("[[:digit:]]+[-][[:digit:]]", jp_rebal$salary_range) > 0 
+	regexpr("[[:digit:]]+[-][[:digit:]]", jp_rebal$salary_range) > 0 
 
 #removing NA's from acceptable salary index list
 acceptable_salary_ranges <- acceptable_salary_ranges & 
-                            !is.na(jp_rebal$salary_range)
+	!is.na(jp_rebal$salary_range)
 
 #now we check that we can subset and identify unacceptable salary ranges
 #save for entries marked NA
 jp_rebal[!acceptable_salary_ranges,]$salary_range %>%
-    unique()
+	unique()
 
 #clearly the resulting cells contain misleading data
 #so we replace their contents with NA
 jp_rebal[!acceptable_salary_ranges,]$salary_range  <- NA
 
-#BEGIN MISSING AND MISLEADING DATA HANDLING
+#split salary_range on '-' to make min_salary and max_salary columns
+min_max_sal_cols <- jp_rebal$salary_range %>% as.character() %>% strsplit(., '-')  
+#preserving corresponding NA's for each column
+min_max_sal_cols[is.na(min_max_sal_cols)] <- list(c(NA, NA))
+
+					#converting to vector
+min_max_sal_df <- min_max_sal_cols %>% unlist() %>% 
+	#converting to matrix
+	matrix(., nrow = length(min_max_sal_cols), byrow = TRUE) %>%
+	#converting to dataframe
+	data.frame(., stringsAsFactors = FALSE)
+#renaming columns
+colnames(min_max_sal_df) <- c('min_salary', 'max_salary')
+#merging jp_rebal and min_max_sal_df column_wise
+jp_rebal <- cbind(jp_rebal, min_max_sal_df)
+#removing min_max_sal_cols
+rm(min_max_sal_cols)
+#removing min_max_sal_df
+rm(min_max_sal_df)
+
+#dropping salary_range attribute
+jp_rebal <- jp_rebal[,(colnames(jp_rebal) != c('salary_range'))]
+
 #changing problematic column name ('function.' -> 'func')
 colnames(jp_rebal)[which(colnames(jp_rebal)=='function.')] <- 'func'
 
@@ -82,11 +104,12 @@ colnames(jp_rebal)[which(colnames(jp_rebal)=='function.')] <- 'func'
 jp_rebal <- apply(jp_rebal, MARGIN = 2, as.character) 
 
 jp_rebal <- 
-    apply(jp_rebal, MARGIN = 2, function(x){
-        x <- as.character(x)
-        x <- ifelse(test=x=='', yes=NA,no=x)}) %>%
-        
-    as.data.frame()
+	apply(jp_rebal, MARGIN = 2, function(x){
+		x <- x %>% 
+			as.character() %>%
+			ifelse(test=.=='', yes=NA,no=.)
+	}) %>%
+	as.data.frame()
 
 #verify blank replacement was successful
 blanks <- sapply(jp_rebal, function(x){
