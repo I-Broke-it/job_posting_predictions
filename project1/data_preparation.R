@@ -193,17 +193,19 @@ ggplot(jp_rebal, aes(min_salary)) + geom_histogram()
 ggplot(jp_rebal, aes(max_salary)) + geom_histogram()
 
 
-#<TODO> BEGIN BINNING 
+#BEGIN BINNING 
+
+jp_rebal$min_salary_binned <- cut(x=jp_rebal$min_salary, breaks = c(0, 25000, 50000, 75000, 100000,500000,1e+06, 6e+06), right=FALSE, 
+                                  labels = c("<25e+03", "25e+03-50e+03", "50e+03-75e+03", "75e+03-1e+05", "1e+05-5e+05", "5e+05-1e+06", "1e+06-6e+06"))
+
+ggplot(jp_rebal[!is.na(jp_rebal$min_salary_binned),], aes(min_salary_binned)) + geom_bar(aes(fill=fraudulent))
+
+jp_rebal$max_salary_binned<- cut(x=jp_rebal$max_salary, breaks = c(0, 25000, 50000, 75000, 100000,500000,1e+06, 6e+06), right=FALSE, 
+                                  labels = c("<25e+03", "25e+03-50e+03", "50e+03-75e+03", "75e+03-1e+05", "1e+05-5e+05", "5e+05-1e+06", "1e+06-7e+06"))
+ggplot(jp_rebal[!is.na(jp_rebal$max_salary_binned),], aes(max_salary_binned)) + geom_bar(aes(fill=fraudulent))
+
+#<TODO> Adjust binning for any changes regarding outliers
 #END BINNING
-
-# # # # # # # # # #counting number of unique values for each column
-# # # # # # # # # #used for determining which features should be 
-# # # # # # # # # #categorical (or factor) features
-# # # # # # # # # sapply(jp_rebal, function(x){length(unique(x))}) %>%
-# # # # # # # # #     sort(decreasing=FALSE)
-
-# # # # # # # # # #<TODO> from the output, the only likely candidate features to be 
-# # # # # # # # # #converted to categorical (or factor) features are
 
 #<TODO> assigning new types
 #END OUTLIER HANDLING
