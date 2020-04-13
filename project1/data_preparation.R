@@ -18,6 +18,7 @@ get_resample <- function(df, resampled_feature, rare_val, p){
 	rares_idx = which(df[resampled_feature] == rare_val)
 	num_rares <- length(rares_idx)
 	x <- ((p*num_records) - num_rares)/(1-p)
+	print(x)
 	resample_idx <- sample(x = rares_idx, size = x, replace=TRUE)
 	return(df[resample_idx,])
 }
@@ -140,8 +141,8 @@ ggplot(jp_rebal, aes(max_salary)) + geom_histogram()
 #<TODO>BEGIN OUTLIER HANDLING
 #z-score is proven to be a better standardization method than min-max
 #in the presence of outliers
-jp_rebal$min_salary_z <- scale(x=jp_rebal$min_salary)
-jp_rebal$max_salary_z <- scale(x=jp_rebal$max_salary)
+jp_rebal$min_salary_z <- scale(x=jp_rebal$min_salary) %>% as.numeric
+jp_rebal$max_salary_z <- scale(x=jp_rebal$max_salary) %>% as.numeric
 
 #dictionary of outliers with keys 'max_salary' and 'min_salary'
 outlier_indices <- c()
@@ -178,9 +179,9 @@ ggplot(jp_rebal, aes(max_salary)) + geom_histogram()
 #in unusually large range differences
 #Now we create new column salary_range_diff containing
 #respective range differences between min and max salary
-jp_rebal$salary_range_diff <- jp_rebal$max_salary - jp_rebal$min_salary
+jp_rebal$salary_range_diff <- (jp_rebal$max_salary - jp_rebal$min_salary)
 #computing z-value for salary_range_diff column values
-jp_rebal$salary_range_diff_z <- scale(jp_rebal$salary_range_diff)
+jp_rebal$salary_range_diff_z <- scale(jp_rebal$salary_range_diff) %>% as.numeric
 #identifying outlier indices
 outlier_indices[['salary_range_diff']] <- ((jp_rebal$salary_range_diff_z > 3 | 
 											jp_rebal$salary_range_diff_z < -3) &
@@ -194,20 +195,41 @@ ggplot(jp_rebal, aes(max_salary)) + geom_histogram()
 
 
 #BEGIN BINNING 
+min_sal_breaks <- c(0, 25000, 50000, 75000, 100000,500000,1e+06, 6e+06)
+min_sal_labels <- c("<25e+03", "25e+03-50e+03", "50e+03-75e+03", "75e+03-1e+05", 
+					"1e+05-5e+05", "5e+05-1e+06", "1e+06-6e+06")
 
-jp_rebal$min_salary_binned <- cut(x=jp_rebal$min_salary, breaks = c(0, 25000, 50000, 75000, 100000,500000,1e+06, 6e+06), right=FALSE, 
-                                  labels = c("<25e+03", "25e+03-50e+03", "50e+03-75e+03", "75e+03-1e+05", "1e+05-5e+05", "5e+05-1e+06", "1e+06-6e+06"))
+jp_rebal$min_salary_binned <- cut(x=jp_rebal$min_salary, breaks = min_sal_breaks,
+								right=FALSE, labels = min_sal_labels)
 
 ggplot(jp_rebal[!is.na(jp_rebal$min_salary_binned),], aes(min_salary_binned)) + geom_bar(aes(fill=fraudulent))
 
-jp_rebal$max_salary_binned<- cut(x=jp_rebal$max_salary, breaks = c(0, 25000, 50000, 75000, 100000,500000,1e+06, 6e+06), right=FALSE, 
-                                  labels = c("<25e+03", "25e+03-50e+03", "50e+03-75e+03", "75e+03-1e+05", "1e+05-5e+05", "5e+05-1e+06", "1e+06-7e+06"))
+max_sal_breaks <- c(0, 25000, 50000, 75000, 100000,500000,1e+06, 6e+06)
+max_sal_labels <- c("<25e+03", "25e+03-50e+03", "50e+03-75e+03", "75e+03-1e+05",
+					"1e+05-5e+05", "5e+05-1e+06", "1e+06-7e+06")
+
+jp_rebal$max_salary_binned<- cut(x=jp_rebal$max_salary, breaks = max_sal_breaks, 
+					right=FALSE, labels = max_sal_labels)
+
 ggplot(jp_rebal[!is.na(jp_rebal$max_salary_binned),], aes(max_salary_binned)) + geom_bar(aes(fill=fraudulent))
 
 #<TODO> Adjust binning for any changes regarding outliers
 #END BINNING
 
 #<TODO> assigning new types
+sapply(jp_rebal, class)
+jp_rebal$job_id <- jp_rebal$job_id %>% as.character %>% as.numeric
+#only those that need changing
+jp_rebal$title <- jp_rebal$title %>% as.character
+jp_rebal$department <- jp_rebal$department %>% as.character
+jp_rebal$company_profile <- jp_rebal$company_profile %>% as.character
+jp_rebal$description <- jp_rebal$description %>% as.character
+jp_rebal$requirements <- jp_rebal$requirements %>% as.character
+jp_rebal$benefits <- jp_rebal$benefits %>% as.character
+#only those that need changing
+
+#saving to file
+write.csv(jp_rebal,'jp_prepared.csv', row.names = F)
 #END OUTLIER HANDLING
 #END EDA AND DATA PREPARATION
 #END MISSING AND MISLEADING DATA HANDLING
