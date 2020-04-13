@@ -229,8 +229,9 @@ jp_rebal$required_edu_num <- revalue(x=jp_rebal$required_education, replace = c(
 
 #assigning new types
 sapply(jp_rebal, class)
-jp_rebal$job_id <- jp_rebal$job_id %>% as.character %>% as.numeric
+jp_rebal$job_id <- jp_rebal$job_id %>% as.character %>% as.integer
 #only those that need changing
+jp_rebal$index <- jp_rebal$index %>% as.integer
 jp_rebal$title <- jp_rebal$title %>% as.character
 jp_rebal$location <- jp_rebal$location %>% as.character
 jp_rebal$department <- jp_rebal$department %>% as.character
