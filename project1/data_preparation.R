@@ -1,8 +1,11 @@
 #Written by Francisco Baca
 
+rm(list = ls())
+
 library(tm) #text mining library (removing stopwords, etc), delete if unnecessary
 library(plyr) #dataframe manipulation library
 library(dplyr) #dataframe manipulation library
+library(ggplot2) #plotting library
 library(tableHTML) #for viewing dataframes in browser (I don't like rstudio, sue me)
 
 jp <- read.csv('fake_job_postings.csv')
@@ -121,30 +124,88 @@ rm(blanks)
 #Exploring default R column types
 col_types <- sapply(jp_rebal, class)
 
-#<TODO> BEGIN BINNING
-
-#first we identify numerical data
-#we select 25 random observations from the data
+#the code below can be used to view
+#25 random observations from the data
 #in order minimize encouters with NA cells
 jp_rebal[runif(25, 1, dim(jp_rebal)[1]),] %>% 
     tableHTML(rownames=FALSE)
 
-#a potential numerical column is 'salary_range'
-#but entries/cell-contents are delimited by '-' 
+#setting min_salary and max_salary as numeric
+jp_rebal$min_salary <- as.numeric(levels(jp_rebal$min_salary))[jp_rebal$min_salary]
+jp_rebal$max_salary <- as.numeric(levels(jp_rebal$max_salary))[jp_rebal$max_salary]
+
+ggplot(jp_rebal, aes(min_salary)) + geom_histogram()
+ggplot(jp_rebal, aes(max_salary)) + geom_histogram()
+#clearly, there are outliers heavily skewing the distribution
+#<TODO>BEGIN OUTLIER HANDLING
+#z-score is proven to be a better standardization method than min-max
+#in the presence of outliers
+jp_rebal$min_salary_z <- scale(x=jp_rebal$min_salary)
+jp_rebal$max_salary_z <- scale(x=jp_rebal$max_salary)
+
+#dictionary of outliers with keys 'max_salary' and 'min_salary'
+outlier_indices <- c()
+outlier_indices[['min_salary']] <- ((jp_rebal$min_salary_z > 3 |
+									jp_rebal$min_salary_z < -3) &
+									!is.na(jp_rebal$min_salary_z))
+
+outlier_indices[['max_salary']] <- ((jp_rebal$max_salary_z > 3 |
+									jp_rebal$max_salary_z < -3) &
+									!is.na(jp_rebal$max_salary_z))
+#identifying outliers
+jp_rebal[outlier_indices[['min_salary']],] %>% tableHTML()
+jp_rebal[outlier_indices[['max_salary']],] %>% tableHTML()
+#we can see from the output tables that the outliers for
+#the attritutes 'min_salary' and 'max_salary' correspond to
+#the same records.
+
+#considering that the outlier records for 'min_salary' and 'max_salary' are 
+#flagged as non-fraudulent, as well as the fact that non-fraudulent made up
+#96% of the records prior to rebalancing, we can remove these records considering
+# as well that their removal does not affect any of our assumptions. Upon viewing 
+#the min and max salaries for these records, it is clear that the records
+#fraudulent attribute was misclassified when the data was entered.
+
+#removing outlier records
+jp_rebal <- jp_rebal[!outlier_indices[['min_salary']],]
+
+#plotting after salary outlier removal
+ggplot(jp_rebal, aes(min_salary)) + geom_histogram()
+ggplot(jp_rebal, aes(max_salary)) + geom_histogram()
+
+#still, several outliers remain, it is likely due
+#to data entry errors in the salary ranges, resulting
+#in unusually large range differences
+#Now we create new column salary_range_diff containing
+#respective range differences between min and max salary
+jp_rebal$salary_range_diff <- jp_rebal$max_salary - jp_rebal$min_salary
+#computing z-value for salary_range_diff column values
+jp_rebal$salary_range_diff_z <- scale(jp_rebal$salary_range_diff)
+#identifying outlier indices
+outlier_indices[['salary_range_diff']] <- ((jp_rebal$salary_range_diff_z > 3 | 
+											jp_rebal$salary_range_diff_z < -3) &
+											!is.na(jp_rebal$salary_range_diff_z))
+
+jp_rebal[outlier_indices[['salary_range_diff']],] %>% tableHTML()
+jp_rebal <- jp_rebal[!outlier_indices[['salary_range_diff']],]
+
+ggplot(jp_rebal, aes(min_salary)) + geom_histogram()
+ggplot(jp_rebal, aes(max_salary)) + geom_histogram()
+
+
+#<TODO> BEGIN BINNING 
 #END BINNING
 
-#counting number of unique values for each column
-#used for determining which features should be 
-#categorical (or factor) features
-sapply(jp_rebal, function(x){length(unique(x))}) %>%
-    sort(decreasing=FALSE)
+# # # # # # # # # #counting number of unique values for each column
+# # # # # # # # # #used for determining which features should be 
+# # # # # # # # # #categorical (or factor) features
+# # # # # # # # # sapply(jp_rebal, function(x){length(unique(x))}) %>%
+# # # # # # # # #     sort(decreasing=FALSE)
 
-#<TODO> from the output, the only likely candidate features to be 
-#converted to categorical (or factor) features are 
+# # # # # # # # # #<TODO> from the output, the only likely candidate features to be 
+# # # # # # # # # #converted to categorical (or factor) features are
 
 #<TODO> assigning new types
-
-#<TODO>BEGIN OUTLIER HANDLING
 #END OUTLIER HANDLING
 #END EDA AND DATA PREPARATION
 #END MISSING AND MISLEADING DATA HANDLING
