@@ -18,7 +18,6 @@ get_resample <- function(df, resampled_feature, rare_val, p){
 	rares_idx = which(df[resampled_feature] == rare_val)
 	num_rares <- length(rares_idx)
 	x <- ((p*num_records) - num_rares)/(1-p)
-	print(x)
 	resample_idx <- sample(x = rares_idx, size = x, replace=TRUE)
 	return(df[resample_idx,])
 }
@@ -216,17 +215,29 @@ ggplot(jp_rebal[!is.na(jp_rebal$max_salary_binned),], aes(max_salary_binned)) + 
 #<TODO> Adjust binning for any changes regarding outliers
 #END BINNING
 
-#<TODO> assigning new types
+#<TODO> categorical classification to numeric
+jp_rebal$required_exp_num <- revalue(x= jp_rebal$required_experience, replace = c('Not Applicable' = NA, 'Internship' = 1, 'Executive' = 6,
+																					'Entry level' = 2, 'Associate'=3,
+																					'Mid-Senior level' = 4, 'Director' = 5))
+
+jp_rebal$required_edu_num <- revalue(x=jp_rebal$required_education, replace = c('Some High School Coursework' = 1,
+																				'High School or equivalent'=2, 'Vocational - HS Diploma'=3,
+																				'Some College Coursework Completed'=4, 'Associate Degree'=5,
+																				'Vocational'=6, 'Vocational - Degree'=7, 'Certification'=8,
+																				"Bachelor's Degree"=9, 'Professional'=10, 
+																				"Master's Degree"=11,'Doctorate'=12, 'Unspecified' = NA))
+
+#assigning new types
 sapply(jp_rebal, class)
 jp_rebal$job_id <- jp_rebal$job_id %>% as.character %>% as.numeric
 #only those that need changing
 jp_rebal$title <- jp_rebal$title %>% as.character
+jp_rebal$location <- jp_rebal$location %>% as.character
 jp_rebal$department <- jp_rebal$department %>% as.character
 jp_rebal$company_profile <- jp_rebal$company_profile %>% as.character
 jp_rebal$description <- jp_rebal$description %>% as.character
 jp_rebal$requirements <- jp_rebal$requirements %>% as.character
 jp_rebal$benefits <- jp_rebal$benefits %>% as.character
-#only those that need changing
 
 #saving to file
 write.csv(jp_rebal,'jp_prepared.csv', row.names = F)
