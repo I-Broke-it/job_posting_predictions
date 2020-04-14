@@ -27,7 +27,7 @@ jp <- read.csv('fake_job_postings.csv')
 
 #BEGIN DATA PREPARATION
 #add index field
-# jp$index <- c(1:dim(jp)[1])
+jp$index <- c(1:dim(jp)[1])
 # unique(jp$fraudulent)
 # #output shows that the 'fraudulent' feature categories contain only {0, 1}
 # sum(jp$fraudulent)/dim(jp)[1] #gives % of fraudulent==TRUE in the dataset
