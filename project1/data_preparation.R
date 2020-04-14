@@ -62,7 +62,6 @@ jp$index <- c(1:dim(jp)[1])
 #as 'Nov', 'Dec', etc...
 #first we identify acceptable entries via regular expression
 #we create a list of jp_rebal indices for acceptable salary ranges
-
 acceptable_salary_ranges <- 
 	regexpr("[[:digit:]]+[-][[:digit:]]", jp$salary_range) > 0 
 
@@ -136,64 +135,51 @@ jp[runif(25, 1, dim(jp)[1]),] %>%
 jp$min_salary <- as.numeric(levels(jp$min_salary))[jp$min_salary]
 jp$max_salary <- as.numeric(levels(jp$max_salary))[jp$max_salary]
 
-ggplot(jp, aes(min_salary)) + geom_histogram()
-ggplot(jp, aes(max_salary)) + geom_histogram()
+#several salaries are listed as 0, which does not make
+#sense, so now we change these to NA and run z-score normalization
+#on the salary attributes again
+zero_indices <- (jp$min_salary == 0) & !is.na(jp$min_salary)
+jp[zero_indices,]$min_salary <- NA
+zero_indices <- (jp$max_salary == 0) & !is.na(jp$max_salary)
+jp[zero_indices,]$max_salary <- NA
+
+#plotting after zero salary removal
+ggplot(jp[!is.na(jp$min_salary),], aes(min_salary)) + geom_histogram()
+ggplot(jp[!is.na(jp$max_salary),], aes(max_salary)) + geom_histogram()
 #clearly, there are outliers heavily skewing the distribution
-#<TODO>BEGIN OUTLIER HANDLING
-#z-score is proven to be a better standardization method than min-max
-#in the presence of outliers
-jp$min_salary_z <- scale(x=jp$min_salary) %>% as.numeric
-jp$max_salary_z <- scale(x=jp$max_salary) %>% as.numeric
 
-#dictionary of outliers with keys 'max_salary' and 'min_salary'
-outlier_indices <- c()
-outlier_indices[['min_salary']] <- ((jp$min_salary_z > 3 |
-									jp$min_salary_z < -3) &
-									!is.na(jp$min_salary_z))
+#introduces more NAs but ensures no salary outliers remain by performing z-score
+#and removing salary outliers until there are none left
+repeat{
+	jp$min_salary_z <- scale(x=jp$min_salary) %>% as.numeric
+	jp$max_salary_z <- scale(x=jp$max_salary) %>% as.numeric
 
-outlier_indices[['max_salary']] <- ((jp$max_salary_z > 3 |
-									jp$max_salary_z < -3) &
-									!is.na(jp$max_salary_z))
-#identifying outliers
-jp[outlier_indices[['min_salary']],] %>% tableHTML()
-jp[outlier_indices[['max_salary']],] %>% tableHTML()
-#we can see from the output tables that the outliers for
-#the attritutes 'min_salary' and 'max_salary' correspond to
-#the same records.
+	#dictionary of outliers with keys 'max_salary' and 'min_salary'
+	outlier_indices <- c()
+	outlier_indices[['min_salary']] <- ((jp$min_salary_z > 3 |
+										jp$min_salary_z < -3) &
+										!is.na(jp$min_salary_z))
 
-#considering that the outlier records for 'min_salary' and 'max_salary' are 
-#flagged as non-fraudulent, as well as the fact that non-fraudulent made up
-#96% of the records prior to rebalancing, we can remove these records considering
-# as well that their removal does not affect any of our assumptions. Upon viewing 
-#the min and max salaries for these records, it is clear that the records
-#fraudulent attribute was misclassified when the data was entered.
+	outlier_indices[['max_salary']] <- ((jp$max_salary_z > 3 |
+										jp$max_salary_z < -3) &
+										!is.na(jp$max_salary_z))
 
-#removing outlier records
-jp <- jp[!outlier_indices[['min_salary']],]
+	no_min_outliers_exist <- (dim(jp[outlier_indices[['min_salary']],])[1] == 0)
+	no_max_outliers_exist <- (dim(jp[outlier_indices[['max_salary']],])[1] == 0)
+	
+	if(no_min_outliers_exist && no_max_outliers_exist){
+		break
+	}else if (no_max_outliers_exist) {
+		jp[outlier_indices[['min_salary']],]$min_salary <- NA
+	}else{
+		jp[outlier_indices[['max_salary']],]$max_salary <- NA
+	}
+
+}
 
 #plotting after salary outlier removal
-ggplot(jp, aes(min_salary)) + geom_histogram()
-ggplot(jp, aes(max_salary)) + geom_histogram()
-
-#still, several outliers remain, it is likely due
-#to data entry errors in the salary ranges, resulting
-#in unusually large range differences
-#Now we create new column salary_range_diff containing
-#respective range differences between min and max salary
-jp$salary_range_diff <- (jp$max_salary - jp$min_salary)
-#computing z-value for salary_range_diff column values
-jp$salary_range_diff_z <- scale(jp$salary_range_diff) %>% as.numeric
-#identifying outlier indices
-outlier_indices[['salary_range_diff']] <- ((jp$salary_range_diff_z > 3 | 
-											jp$salary_range_diff_z < -3) &
-											!is.na(jp$salary_range_diff_z))
-
-jp[outlier_indices[['salary_range_diff']],] %>% tableHTML()
-jp <- jp[!outlier_indices[['salary_range_diff']],]
-
-ggplot(jp, aes(min_salary)) + geom_histogram()
-ggplot(jp, aes(max_salary)) + geom_histogram()
-
+ggplot(jp[!is.na(jp$min_salary),], aes(min_salary)) + geom_histogram()
+ggplot(jp[!is.na(jp$max_salary),], aes(max_salary)) + geom_histogram()
 
 #BEGIN BINNING 
 min_sal_breaks <- c(0, 25000, 50000, 75000, 100000,500000,1e+06, 6e+06)
@@ -205,7 +191,7 @@ jp$min_salary_binned <- cut(x=jp$min_salary, breaks = min_sal_breaks,
 
 ggplot(jp[!is.na(jp$min_salary_binned),], aes(min_salary_binned)) + geom_bar(aes(fill=fraudulent))
 
-max_sal_breaks <- c(0, 25000, 50000, 75000, 100000,500000,1e+06, 6e+06)
+max_sal_breaks <- c(0, 25000, 50000, 75000, 100000,500000,1e+06, 7e+06)
 max_sal_labels <- c("<25e+03", "25e+03-50e+03", "50e+03-75e+03", "75e+03-1e+05",
 					"1e+05-5e+05", "5e+05-1e+06", "1e+06-7e+06")
 
@@ -213,6 +199,7 @@ jp$max_salary_binned<- cut(x=jp$max_salary, breaks = max_sal_breaks,
 					right=FALSE, labels = max_sal_labels)
 
 ggplot(jp[!is.na(jp$max_salary_binned),], aes(max_salary_binned)) + geom_bar(aes(fill=fraudulent))
+#END OUTLIER HANDLING
 
 #<TODO> Adjust binning for any changes regarding outliers
 #END BINNING
@@ -244,6 +231,5 @@ jp$benefits <- jp$benefits %>% as.character
 
 #saving to file
 write.csv(jp,'jp_prepared.csv', row.names = F)
-#END OUTLIER HANDLING
-#END EDA AND DATA PREPARATION
+#END DATA PREPARATION
 #END MISSING AND MISLEADING DATA HANDLING
