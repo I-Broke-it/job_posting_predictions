@@ -1,0 +1,41 @@
+###UNTESTED###
+###INCOMPLETE###
+rm(list = ls())
+library(magrittr) #for using pipes (more concise code, but slightly less explicit)
+
+#text mining libraries
+library(tm)
+library(dplyr)
+library(caret)  
+library(e1071)
+library(kernlab) 
+library(splitstackshape)
+
+#assuming train and test csv's exist
+#and that they are properly balanced 
+#and valid partitions
+jp_train <- read.csv('jp_train.csv')
+jp_test <- read.csv('jp_test.csv')
+
+#which columns contain text data elligible for text mining?
+head(jp_train)
+
+#columns eligible for text mining are company_profile, description, requirements and benefits
+
+#create and clean a dataframe of corpora for the above listed feature contents (training)
+jp_train_corpora$company_profile <- jp_train$company_profile %>% VectorSource %>% VCorpus %>% clean_corpus
+jp_train_corpora$description <- jp_train$description %>% VectorSource %>% VCorpus %>% clean_corpus
+jp_train_corpora$requirements <- jp_train$requirements %>% VectorSource %>% VCorpus %>% clean_corpus
+jp_train_corpora$benefits <- jp_train$benefits %>% VectorSource %>% VCorpus %>% clean_corpus
+
+#create a document term matrix for the training partition
+jp_train_dtm <- jp_train_corpora %>% DocumentTermMatrix(., control=list(wordLengths=c(1, Inf))) %>% as.matrix()
+
+#create and clean a dataframe of corpora for the above listed feature contents (training)
+jp_test_corpora$company_profile <- jp_test$company_profile %>% VectorSource %>% VCorpus %>% clean_corpus
+jp_test_corpora$description <- jp_test$description %>% VectorSource %>% VCorpus %>% clean_corpus
+jp_test_corpora$requirements <- jp_test$requirements %>% VectorSource %>% VCorpus %>% clean_corpus
+jp_test_corpora$benefits <- jp_test$benefits %>% VectorSource %>% VCorpus %>% clean_corpus
+
+#create a document term matrix for the testing partition
+jp_test_dtm <- jp_test_corpora %>% DocumentTermMatrix(., control=list(wordLengths=c(1, Inf))) %>% as.matrix()

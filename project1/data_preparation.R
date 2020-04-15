@@ -6,6 +6,7 @@ library(tm) #text mining library (removing stopwords, etc), delete if unnecessar
 library(plyr) #dataframe manipulation library
 library(dplyr) #dataframe manipulation library
 library(ggplot2) #plotting library
+library(magrittr) #for using pipes (more concise code, but slightly less explicit)
 library(tableHTML) #for viewing dataframes in browser (I don't like rstudio, sue me)
 
 jp <- read.csv('fake_job_postings.csv')
@@ -119,7 +120,7 @@ jp <-
 blanks <- sapply(jp, function(x){
   table(x=='')
 })
-blanks
+blanks %>% data.frame
 rm(blanks)
 
 #Exploring default R column types
@@ -195,7 +196,7 @@ max_sal_breaks <- c(0, 25000, 50000, 75000, 100000,500000,1e+06, 7e+06)
 max_sal_labels <- c("<25e+03", "25e+03-50e+03", "50e+03-75e+03", "75e+03-1e+05",
 					"1e+05-5e+05", "5e+05-1e+06", "1e+06-7e+06")
 
-jp$max_salary_binned<- cut(x=jp$max_salary, breaks = max_sal_breaks, 
+jp$max_salary_binned <- cut(x=jp$max_salary, breaks = max_sal_breaks, 
 					right=FALSE, labels = max_sal_labels)
 
 ggplot(jp[!is.na(jp$max_salary_binned),], aes(max_salary_binned)) + geom_bar(aes(fill=fraudulent))
@@ -217,18 +218,20 @@ jp$required_edu_num <- revalue(x=jp$required_education, replace = c('Some High S
 																				"Master's Degree"=11,'Doctorate'=12, 'Unspecified' = NA))
 
 #assigning new types
+#type assignment may not be necessary
+#performed to avoid any further errors (yeah... right)
 sapply(jp, class)
-jp$job_id <- jp$job_id %>% as.character %>% as.integer
+jp$job_id %<>% as.character %>% as.integer
 #only those that need changing
-jp$index <- jp$index %>% as.integer
-jp$title <- jp$title %>% as.character
-jp$location <- jp$location %>% as.character
-jp$department <- jp$department %>% as.character
-jp$company_profile <- jp$company_profile %>% as.character
-jp$description <- jp$description %>% as.character
-jp$requirements <- jp$requirements %>% as.character
-jp$benefits <- jp$benefits %>% as.character
-
+jp$index %<>% as.integer
+jp$title %<>% as.character
+jp$location %<>% as.character
+jp$department %<>% as.character
+jp$company_profile %<>% as.character
+jp$description %<>% as.character
+jp$requirements %<>% as.character
+jp$benefits %<>% as.character
+jp$fraudulent %<>% factor
 #saving to file
 write.csv(jp,'jp_prepared.csv', row.names = F)
 #END DATA PREPARATION
