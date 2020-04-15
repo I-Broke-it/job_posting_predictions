@@ -11,6 +11,19 @@ library(e1071)
 library(kernlab) 
 library(splitstackshape)
 
+#removes whitespace, punctuation, stopwords,
+# amongst other content that interferes with
+#text mining
+clean_corpus <- function(corpus){
+    corpus %<>% tm_map(., stripWhitespace)
+    corpus %<>% tm_map(., removePunctuation)
+    corpus %<>% tm_map(., content_transformer(tolower))
+    corpus %<>% tm_map(., removeWords, stopwords("en"))
+    corpus %<>% tm_map(., stripWhitespace)
+    corpus %<>% tm_map(., content_transformer(stemDocument), language = "english")
+    return(corpus)
+}
+
 #assuming train and test csv's exist
 #and that they are properly balanced 
 #and valid partitions
