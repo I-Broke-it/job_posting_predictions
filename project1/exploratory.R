@@ -61,3 +61,28 @@ table(jp$has_questions, jp$fraudulent)
 table(jp$has_company_logo, jp$fraudulent)
 # 18.9% of the ones without a company logo are fake, compared to only 2% otherwise.
 # This is a vast difference that I wasn't expecting.
+
+table(jp$location, jp$fraudulent)
+# Too many unique values. We should probably change this to Country.
+
+table(is.na(jp$requirements), jp$fraudulent)
+# There's no discernable difference here, so requirements doesn't seem to have an impact
+
+table(is.na(jp$company_profile), jp$fraudulent)
+# Fradulent records tend to not have a company profile.
+
+table(is.na(jp$benefits), jp$fraudulent)
+# Whether or not a record has benefits does not affect whether or not a record is fake.
+# This makes sense, as it's typically the content of the benefits that would indicate this.
+
+#the graph shown below shows a multivariate relationship between min_salary, max_salary and the target variable fraudulent
+ggplot(jp[!is.na(jp$max_salary) & !is.na(jp$min_salary),], aes(max_salary, min_salary, col=factor(fraudulent))) + 
+  geom_point() + geom_smooth(method = 'lm', se=F)
+# For records listing the same max salary, fraudulent records appear to have a somewhat higher
+# minimum salary than their real counterparts. I'm not sure if this is statistically 
+# significant though. 
+
+table(jp$has_company_logo, jp$has_questions | jp$telecommuting)
+# For companies without a logo, roughly 2/3 also didn't have questions or telecommuting
+# listed on their profile. The company logo is a fairly big indicator of whether a job
+# listing is fake or not, and it appears that these listing were put together quickly.
