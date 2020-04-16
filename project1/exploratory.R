@@ -11,7 +11,11 @@ jp <- read.csv("jp_prepared.csv")
 
 table(jp$fraudulent) # 17008 real, 865 fake. We will need to rebalance this in phase 3.
 
-### Exploring based on Salary ###
+
+###############################################
+### Exploring relationships based on Salary ###
+###############################################
+
 # I think the salary listed on a job interview would have a big impact on whether or not
 # a job offering is fake. For fake jobs, you want to make it as enticing as possible, and
 # raising the salary is an easy way to do so.
@@ -25,7 +29,7 @@ ggplot(jp, aes(max_salary_binned)) + geom_bar(aes(fill = fraudulent), position="
 ggplot(jp, aes(min_salary_binned)) + geom_bar(aes(fill = fraudulent), position="fill")
 # Interestingly, fraudulent records appear to be less frequent records where the min salary is higher.
 
-### Exploring job details ###
+### Exploring relationships based on job details and other general fields ###
 ggplot(jp, aes(industry)) + geom_bar()
 # Far too messy to look at.
 
@@ -75,6 +79,11 @@ table(is.na(jp$benefits), jp$fraudulent)
 # Whether or not a record has benefits does not affect whether or not a record is fake.
 # This makes sense, as it's typically the content of the benefits that would indicate this.
 
+
+############################################
+### Exploring multivariate relationships ###
+############################################
+
 #the graph shown below shows a multivariate relationship between min_salary, max_salary and the target variable fraudulent
 ggplot(jp[!is.na(jp$max_salary) & !is.na(jp$min_salary),], aes(max_salary, min_salary, col=factor(fraudulent))) + 
   geom_point() + geom_smooth(method = 'lm', se=F)
@@ -82,7 +91,7 @@ ggplot(jp[!is.na(jp$max_salary) & !is.na(jp$min_salary),], aes(max_salary, min_s
 # minimum salary than their real counterparts. I'm not sure if this is statistically 
 # significant though. 
 
-table(jp$has_company_logo, jp$has_questions | jp$telecommuting)
+table(jp$has_company_logo, (as.numeric(jp$has_questions) - 1) | (as.numeric(jp$telecommuting) - 1))
 # For companies without a logo, roughly 2/3 also didn't have questions or telecommuting
 # listed on their profile. The company logo is a fairly big indicator of whether a job
 # listing is fake or not, and it appears that these listing were put together quickly.
@@ -92,3 +101,39 @@ ggplot(jp[!is.na(jp$max_salary) & !is.na(jp$min_salary),], aes(max_salary, min_s
                                                                 geom_point() + geom_smooth(method = 'lm', se=F)
 # For records with the same maximum salary, the fraudulent records tend to have a higher min
 # salary than the real ones.
+
+
+###########################################################
+### Adding new fields and exploring their relationships ###
+###########################################################
+
+jp$salary_range <- jp$max_salary - jp$min_salary
+hist(jp$salary_range)
+# Appears to be decreasing exponentially, no patterns. Binning with 0, 0.1, 10000, 30000, 50000, and 75000+.
+sal_range_breaks <- c(0, 0.1, 10000, 30000, 50000, 75000, 200000)
+sal_range_labels <- c("0", "0 - 10k", "10k - 30k", 
+                      "30k - 50k", "50k - 75k", "75k+")
+
+jp$sal_range_binned <- cut(x=jp$salary_range, breaks = sal_range_breaks, 
+                            left=FALSE, labels = sal_range_labels)
+
+ggplot(jp, aes(sal_range_binned)) + geom_bar(aes(fill=fraudulent))
+# Overwhelmingly NA, but the majority of real records are in the 0 to 10k range.
+
+ggplot(jp, aes(sal_range_binned)) + geom_bar(aes(fill=fraudulent), position = "fill")
+# 0-10k and 50-75k seem to have the most records be fraudulent. Records with a 75k+ 
+# difference seem to all be real.
+
+# A well defined job has questions, a company logo, and telecommuting.
+# Somehow in converting these fields to a factor, they were replaced with 2/1 instead of 1/0.
+# Because of this, it the code is pretty messy.
+jp$well_defined_job <- (as.numeric(jp$telecommuting) - 1) & (as.numeric(jp$has_company_logo) - 1) & (as.numeric(jp$has_company_logo) - 1)
+
+# A sorta defined job has at least 1 of questions, a company logo, or telecommuting.
+jp$sorta_defined_job <- (as.numeric(jp$telecommuting) - 1) | (as.numeric(jp$has_company_logo) - 1) | (as.numeric(jp$has_company_logo) - 1)
+
+table(jp$well_defined_job, jp$fraudulent)
+# Not too big of a difference here.
+
+table(jp$sorta_defined_job, jp$fraudulent)
+# This field is a very big indicator of if a job is fraudulent, as stated previously.
