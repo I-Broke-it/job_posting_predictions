@@ -11,53 +11,6 @@ library(tableHTML) #for viewing dataframes in browser (I don't like rstudio, sue
 
 jp <- read.csv('fake_job_postings.csv')
 
-#BEGIN HELPER FUNCTIONS
-#returns new sample from given df, where p is 
-#the desired percentage of rare records
-#not necessary until setup phase
-# get_resample <- function(df, resampled_feature, rare_val, p){
-# 	num_records <- dim(df)[1]
-# 	rares_idx = which(df[resampled_feature] == rare_val)
-# 	num_rares <- length(rares_idx)
-# 	x <- ((p*num_records) - num_rares)/(1-p)
-# 	resample_idx <- sample(x = rares_idx, size = x, replace=TRUE)
-# 	return(df[resample_idx,])
-# }
-#END HELPER FUNCTIONS
-
-
-#BEGIN DATA PREPARATION
-#add index field
-jp$index <- c(1:dim(jp)[1])
-# unique(jp$fraudulent)
-# #output shows that the 'fraudulent' feature categories contain only {0, 1}
-# sum(jp$fraudulent)/dim(jp)[1] #gives % of fraudulent==TRUE in the dataset
-# #alternatively...
-# table(jp$fraudulent) #gives contingency table for fraudulent feature
-# #<TODO> consider adding proportions to the contingency table
-
-
-#since only 4% of the records are fraudulent,
-#the dataset needs rebalancing
-
-#BEGIN DATA RESAMPLING AND REBALANCING
-#rebalance at 50/50 on 'fraudulent' attribute
-#not necessary until setup phase
-# jp_rebal <- 
-#   get_resample(jp, 'fraudulent', 1, .5) %>% 
-#   rbind(jp, .)
-
-#sorting by index field
-#might not be necessary with new placeholder arg on line 42
-#jp_rebal <- jp_rebal[order(jp_rebal$index),]
-
-# sum(jp_rebal$fraudulent)/dim(jp_rebal)[1]
-#alternatively...
-# table(jp_rebal$fraudulent)
-#post rebalancing, the proportions show a 50:50 
-#fake-to-real ratio for the 'fraudulent' feature
-#END DATA RESAMPLING AND REBALANCING
-
 #BEGIN MISSING AND MISLEADING DATA HANDLING
 #some troublesome entries in jp_rebal$salary_range contain non-numeric characters such
 #as 'Nov', 'Dec', etc...
@@ -232,6 +185,10 @@ jp$requirements %<>% as.character
 jp$description %<>% as.character
 jp$benefits %<>% as.character
 jp$fraudulent %<>% factor
+
+#add index field
+jp$index <- c(1:dim(jp)[1])
+
 #saving to file
 write.csv(jp,'jp_prepared.csv', row.names = F)
 #END DATA PREPARATION

@@ -1,6 +1,8 @@
+
+rm(list = ls())
+
 ###UNTESTED###
 ###INCOMPLETE###
-rm(list = ls())
 library(magrittr) #for using pipes (more concise code, but slightly less explicit)
 
 #text mining libraries
@@ -13,8 +15,9 @@ library(splitstackshape)
 
 #removes whitespace, punctuation, stopwords,
 # amongst other content that interferes with
-#text mining
+#text miningoo
 clean_corpus <- function(corpus){
+    corpus %<>% tm_map(., removeNumbers)
     corpus %<>% tm_map(., stripWhitespace)
     corpus %<>% tm_map(., removePunctuation)
     corpus %<>% tm_map(., content_transformer(tolower))
@@ -35,20 +38,33 @@ head(jp_train)
 
 #columns eligible for text mining are benefits, description, requirements and company_profiles
 
-#create and clean a dataframe of corpora for the above listed feature contents (training)
-jp_train_corpora$benefits <- jp_train$benefits %>% VectorSource %>% VCorpus %>% clean_corpus
-jp_train_corpora$description <- jp_train$description %>% VectorSource %>% VCorpus %>% clean_corpus
-jp_train_corpora$requirements <- jp_train$requirements %>% VectorSource %>% VCorpus %>% clean_corpus
-jp_train_corpora$company_profile <- jp_train$company_profile %>% VectorSource %>% VCorpus %>% clean_corpus
 
 #create and clean a dataframe of corpora for the above listed feature contents (training)
-jp_test_corpora$company_profile <- jp_test$company_profile %>% VectorSource %>% VCorpus %>% clean_corpus
-jp_test_corpora$requirements <- jp_test$requirements %>% VectorSource %>% VCorpus %>% clean_corpus
-jp_test_corpora$description <- jp_test$description %>% VectorSource %>% VCorpus %>% clean_corpus
-jp_test_corpora$benefits <- jp_test$benefits %>% VectorSource %>% VCorpus %>% clean_corpus
+jp_train$benefits_corpus <- jp_train$benefits %<>% VectorSource %>% VCorpus %>% clean_corpus
+jp_train$description_corpus <- jp_train$description %>% VectorSource %>% VCorpus %>% clean_corpus
+jp_train$requirements_corpus <- jp_train$requirements %>% VectorSource %>% VCorpus %>% clean_corpus
+jp_train$company_profile_corpus <- jp_train$company_profile %>% VectorSource %>% VCorpus %>% clean_corpus
 
-#create a document term matrix for the training partition
-jp_train_dtm <- jp_train_corpora %>% DocumentTermMatrix(., control=list(wordLengths=c(1, Inf))) %>% as.matrix()
+#create and clean a dataframe of corpora for the above listed feature contents (testing)
+jp_test$company_profile_corpus <- jp_test$company_profile %>% VectorSource %>% VCorpus %>% clean_corpus
+jp_test$requirements_corpus <- jp_test$requirements %>% VectorSource %>% VCorpus %>% clean_corpus
+jp_test$description_corpus <- jp_test$description %>% VectorSource %>% VCorpus %>% clean_corpus
+jp_test$benefits_corpus <- jp_test$benefits %>% VectorSource %>% VCorpus %>% clean_corpus
+
+#create document term matrices for the training partition
+#train_b_dtm <- jp_train$benefits_corpus %>% DocumentTermMatrix(., control=list(wordLengths=c(1, Inf))) %>% as.matrix()
+#train_d_dtm <- jp_train$description_corpus %>% DocumentTermMatrix(., control=list(wordLengths=c(1, Inf))) %>% as.matrix()
+#train_r_dtm <- jp_train$requirements_corpus %>% DocumentTermMatrix(., control=list(wordLengths=c(1, Inf))) %>% as.matrix()
+#train_cp_dtm <- jp_train$company_profile_corpus %>% DocumentTermMatrix(., control=list(wordLengths=c(1, Inf))) %>% as.matrix()
 
 #create a document term matrix for the testing partition
-jp_test_dtm <- jp_test_corpora %>% DocumentTermMatrix(., control=list(wordLengths=c(1, Inf))) %>% as.matrix()
+#test_cp_dtm <- jp_test$company_profile_corpus %>% DocumentTermMatrix(., control=list(wordLengths=c(1, Inf))) %>% as.matrix()
+#test_r_dtm <- jp_test$requirements_corpus %>% DocumentTermMatrix(., control=list(wordLengths=c(1, Inf))) %>% as.matrix()
+#test_d_dtm <- jp_test$description_corpus %>% DocumentTermMatrix(., control=list(wordLengths=c(1, Inf))) %>% as.matrix()
+#test_b_dtm <- jp_test$benefits_corpus %>% DocumentTermMatrix(., control=list(wordLengths=c(1, Inf))) %>% as.matrix()
+
+#create a document term matrix for the training partition for the company_profile attribute
+train_dtm <- jp_train$company_profile_corpus %>% DocumentTermMatrix(., control=list(wordLengths=c(1, Inf))) %>% as.matrix()
+
+#create a document term matrix for the testing partition for the benefits attribute
+test_dtm <- jp_test$company_profile_corpus %>% DocumentTermMatrix(., control=list(wordLengths=c(1, Inf))) %>% as.matrix()
