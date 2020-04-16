@@ -86,3 +86,9 @@ table(jp$has_company_logo, jp$has_questions | jp$telecommuting)
 # For companies without a logo, roughly 2/3 also didn't have questions or telecommuting
 # listed on their profile. The company logo is a fairly big indicator of whether a job
 # listing is fake or not, and it appears that these listing were put together quickly.
+
+#the graph shown below shows a multivariate relationship between min_salary, max_salary and the target variable fraudulent
+ggplot(jp[!is.na(jp$max_salary) & !is.na(jp$min_salary),], aes(max_salary, min_salary, col=factor(fraudulent))) + 
+                                                                geom_point() + geom_smooth(method = 'lm', se=F)
+# For records with the same maximum salary, the fraudulent records tend to have a higher min
+# salary than the real ones.

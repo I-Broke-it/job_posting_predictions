@@ -228,8 +228,8 @@ jp$title %<>% as.character
 jp$location %<>% as.character
 jp$department %<>% as.character
 jp$company_profile %<>% as.character
-jp$description %<>% as.character
 jp$requirements %<>% as.character
+jp$description %<>% as.character
 jp$benefits %<>% as.character
 jp$fraudulent %<>% factor
 #saving to file
