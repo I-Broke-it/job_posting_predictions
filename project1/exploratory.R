@@ -61,3 +61,7 @@ table(jp$has_questions, jp$fraudulent)
 table(jp$has_company_logo, jp$fraudulent)
 # 18.9% of the ones without a company logo are fake, compared to only 2% otherwise.
 # This is a vast difference that I wasn't expecting.
+
+#the graph shown below shows a multivariate relationship between min_salary, max_salary and the target variable fraudulent
+ggplot(jp[!is.na(jp$max_salary) & !is.na(jp$min_salary),], aes(max_salary, min_salary, col=factor(fraudulent))) + 
+                                                                geom_point() + geom_smooth(method = 'lm', se=F)
