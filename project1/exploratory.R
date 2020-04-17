@@ -18,11 +18,8 @@ jp$company_profile %<>% as.character
 jp$requirements %<>% as.character
 jp$description %<>% as.character
 jp$department %<>% as.character
-jp$has_company_logo %<>% factor
 jp$benefits %<>% as.character
 jp$location %<>% as.character
-jp$telecommuting %<>% factor
-jp$has_questions %<>% factor
 jp$title %<>% as.character
 jp$fraudulent %<>% factor
 jp$index %<>% as.integer
