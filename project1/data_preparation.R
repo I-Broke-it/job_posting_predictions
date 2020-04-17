@@ -12,6 +12,26 @@ library(tableHTML) #for viewing dataframes in browser (I don't like rstudio, sue
 jp <- read.csv('fake_job_postings.csv')
 
 #BEGIN MISSING AND MISLEADING DATA HANDLING
+
+#assigning new types
+#performed to avoid any further errors (yeah... right)
+sapply(jp, class)
+#converting from default R-assigned types
+jp$job_id %<>% as.character %>% as.integer
+jp$company_profile %<>% as.character
+jp$requirements %<>% as.character
+jp$description %<>% as.character
+jp$department %<>% as.character
+jp$has_company_logo %<>% factor
+jp$benefits %<>% as.character
+jp$location %<>% as.character
+jp$telecommuting %<>% factor
+jp$has_questions %<>% factor
+jp$title %<>% as.character
+jp$fraudulent %<>% factor
+jp$index %<>% as.integer
+
+
 #some troublesome entries in jp_rebal$salary_range contain non-numeric characters such
 #as 'Nov', 'Dec', etc...
 #first we identify acceptable entries via regular expression
@@ -171,7 +191,6 @@ jp$required_edu_num <- revalue(x=jp$required_education, replace = c('Some High S
 																				"Master's Degree"=11,'Doctorate'=12, 'Unspecified' = NA))
 
 #assigning new types
-#type assignment may not be necessary
 #performed to avoid any further errors (yeah... right)
 sapply(jp, class)
 jp$job_id %<>% as.character %>% as.integer

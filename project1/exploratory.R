@@ -4,10 +4,28 @@ library(tm) #text mining library (removing stopwords, etc), delete if unnecessar
 library(plyr) #dataframe manipulation library
 library(dplyr) #dataframe manipulation library
 library(ggplot2) #plotting library. I like Rstudio, sue me
+library(magrittr)
 
 jp <- read.csv("jp_prepared.csv")
 
 ##### EXPLORATORY PHASE #####
+
+#assigning new types
+sapply(jp, class)
+#converting from default R-assigned types
+jp$job_id %<>% as.character %>% as.integer
+jp$company_profile %<>% as.character
+jp$requirements %<>% as.character
+jp$description %<>% as.character
+jp$department %<>% as.character
+jp$has_company_logo %<>% factor
+jp$benefits %<>% as.character
+jp$location %<>% as.character
+jp$telecommuting %<>% factor
+jp$has_questions %<>% factor
+jp$title %<>% as.character
+jp$fraudulent %<>% factor
+jp$index %<>% as.integer
 
 table(jp$fraudulent) # 17008 real, 865 fake. We will need to rebalance this in phase 3.
 
@@ -91,7 +109,7 @@ ggplot(jp[!is.na(jp$max_salary) & !is.na(jp$min_salary),], aes(max_salary, min_s
 # minimum salary than their real counterparts. I'm not sure if this is statistically 
 # significant though. 
 
-table(jp$has_company_logo, (as.numeric(jp$has_questions) - 1) | (as.numeric(jp$telecommuting) - 1))
+table(jp$has_company_logo, jp$has_questions | jp$telecommuting)
 # For companies without a logo, roughly 2/3 also didn't have questions or telecommuting
 # listed on their profile. The company logo is a fairly big indicator of whether a job
 # listing is fake or not, and it appears that these listing were put together quickly.
@@ -127,10 +145,10 @@ ggplot(jp, aes(sal_range_binned)) + geom_bar(aes(fill=fraudulent), position = "f
 # A well defined job has questions, a company logo, and telecommuting.
 # Somehow in converting these fields to a factor, they were replaced with 2/1 instead of 1/0.
 # Because of this, it the code is pretty messy.
-jp$well_defined_job <- (as.numeric(jp$telecommuting) - 1) & (as.numeric(jp$has_company_logo) - 1) & (as.numeric(jp$has_company_logo) - 1)
+jp$well_defined_job <- (jp$telecommuting & jp$has_company_logo & jp$has_company_logo)
 
 # A sorta defined job has at least 1 of questions, a company logo, or telecommuting.
-jp$sorta_defined_job <- (as.numeric(jp$telecommuting) - 1) | (as.numeric(jp$has_company_logo) - 1) | (as.numeric(jp$has_company_logo) - 1)
+jp$sorta_defined_job <- (jp$telecommuting | jp$has_company_logo | jp$has_company_logo)
 
 table(jp$well_defined_job, jp$fraudulent)
 # Not too big of a difference here.
