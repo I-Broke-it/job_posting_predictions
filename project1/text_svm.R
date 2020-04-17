@@ -1,4 +1,6 @@
 
+#written by Francisco Baca
+
 rm(list = ls())
 
 ###UNTESTED###
@@ -13,9 +15,9 @@ library(e1071) #for svm
 library(kernlab) #for svm
 library(splitstackshape)
 
-#removes whitespace, punctuation, stopwords,
-# amongst other content that interferes with
-#text miningoo
+#removes numbers, whitespace, punctuation, stopwords,
+# amongst other content that commonly interferes with
+#text mining techniques 
 clean_corpus <- function(corpus){
     corpus %<>% tm_map(., removeNumbers)
     corpus %<>% tm_map(., stripWhitespace)
@@ -29,7 +31,7 @@ clean_corpus <- function(corpus){
 
 #assuming train and test csv's exist
 #and that they are properly balanced 
-#and valid partitions
+#and validated partitions
 jp_train <- read.csv('jp_train.csv')
 jp_test <- read.csv('jp_test.csv')
 
@@ -52,12 +54,14 @@ jp_test$description_corpus <- jp_test$description %>% VectorSource %>% VCorpus %
 jp_test$benefits_corpus <- jp_test$benefits %>% VectorSource %>% VCorpus %>% clean_corpus
 
 #create document term matrices for the training partition
+#might not work due to high memory usage, may remove later
 #train_b_dtm <- jp_train$benefits_corpus %>% DocumentTermMatrix(., control=list(wordLengths=c(1, Inf))) %>% as.matrix()
 #train_d_dtm <- jp_train$description_corpus %>% DocumentTermMatrix(., control=list(wordLengths=c(1, Inf))) %>% as.matrix()
 #train_r_dtm <- jp_train$requirements_corpus %>% DocumentTermMatrix(., control=list(wordLengths=c(1, Inf))) %>% as.matrix()
 #train_cp_dtm <- jp_train$company_profile_corpus %>% DocumentTermMatrix(., control=list(wordLengths=c(1, Inf))) %>% as.matrix()
 
 #create a document term matrix for the testing partition
+#might not work due to high memory usage, may remove later
 #test_cp_dtm <- jp_test$company_profile_corpus %>% DocumentTermMatrix(., control=list(wordLengths=c(1, Inf))) %>% as.matrix()
 #test_r_dtm <- jp_test$requirements_corpus %>% DocumentTermMatrix(., control=list(wordLengths=c(1, Inf))) %>% as.matrix()
 #test_d_dtm <- jp_test$description_corpus %>% DocumentTermMatrix(., control=list(wordLengths=c(1, Inf))) %>% as.matrix()
@@ -68,3 +72,8 @@ train_dtm <- jp_train$company_profile_corpus %>% DocumentTermMatrix(., control=l
 
 #create a document term matrix for the testing partition for the benefits attribute
 test_dtm <- jp_test$company_profile_corpus %>% DocumentTermMatrix(., control=list(wordLengths=c(1, Inf))) %>% as.matrix()
+
+
+#document term matrices can likely only be set up for each text-based attribute one at a time,
+#each one uses a lot of memory at one time and must be deleted once it is no longer being
+#tested.
