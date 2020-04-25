@@ -146,3 +146,5 @@ table(jp$well_defined_job, jp$fraudulent)
 
 table(jp$sorta_defined_job, jp$fraudulent)
 # This field is a very big indicator of if a job is fraudulent, as stated previously.
+
+jp <- write.csv(jp,'jp_prepared.csv', row.names = F)
