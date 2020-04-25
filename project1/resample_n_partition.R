@@ -56,9 +56,9 @@ jp_test <- jp[!train_indices,]
 #BEGIN DATA RESAMPLING AND REBALANCING
 #rebalance at 50/50 on 'fraudulent' attribute
 #not necessary until setup phase
-jp <- 
+jp_train <- 
   get_resample(jp_train, 'fraudulent', 1, .4) %>% 
-  rbind(jp, .)
+  rbind(jp_train, .)
 
 #writing training and testing partitions to file
 
