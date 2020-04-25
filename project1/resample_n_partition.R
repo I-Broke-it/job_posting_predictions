@@ -31,13 +31,6 @@ table(jp$fraudulent) #gives contingency table for fraudulent feature
 #since only 4% of the records are fraudulent,
 #the dataset needs rebalancing
 
-#BEGIN DATA RESAMPLING AND REBALANCING
-#rebalance at 50/50 on 'fraudulent' attribute
-#not necessary until setup phase
-jp <- 
-    get_resample(jp, 'fraudulent', 1, .4) %>% 
-    rbind(jp, .)
-
 #sorting by index field
 #might not be necessary with new placeholder arg on line 42
 #jp <- jp[order(jp$index),]
@@ -56,7 +49,16 @@ train_indices <- runif(dim(jp)[1]) < .75
 jp_train <- jp[train_indices,]
 jp_test <- jp[!train_indices,]
 
+
+
 #<TODO> Partition validation
+
+#BEGIN DATA RESAMPLING AND REBALANCING
+#rebalance at 50/50 on 'fraudulent' attribute
+#not necessary until setup phase
+jp <- 
+  get_resample(jp_train, 'fraudulent', 1, .4) %>% 
+  rbind(jp, .)
 
 #writing training and testing partitions to file
 
