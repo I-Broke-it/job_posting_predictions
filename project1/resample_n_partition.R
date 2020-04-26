@@ -35,35 +35,45 @@ z_test <- function(df_train, df_test, field) {
   return(z)
 }
 
-hom_of_prop <- function(df, df_train, df_test, field) {
+#README
+#I'm about to make you hate R, it already has something
+#built in for this...skip down to the function call
+# hom_of_prop <- function(df, df_train, df_test, field) {
   
-  # Initialize values
-  expected_train <- c(); expected_test <- c(); observed_train <- c(); observed_test <- c();
-  n <- dim(df)[1]; n_train <- dim(df_train)[1]; n_test <- dim(df_test)[1];
+#   # Initialize values
+#   expected_train <- c(); expected_test <- c(); observed_train <- c(); observed_test <- c();
+#   n <- dim(df)[1]; n_train <- dim(df_train)[1]; n_test <- dim(df_test)[1];
   
-  for (i in unique(df[field])) {
+#   for (i in unique(df[field])) {
     
-    # Compute Expected Values
-    prop_all <- sum(df$field == i) / n
-    append(expected_train, prop_all * n_train)
-    append(expected_test, prop_all * n_test)
+#     # Compute Expected Values
+#     prop_all <- sum(df$field == i) / n
+#     append(expected_train, prop_all * n_train)
+#     append(expected_test, prop_all * n_test)
     
-    # Compute Observed Values
-    append(observed_train, sum(df_train$field == i))
-    append(observed_train, sum(df_test$field == i))
-  }
+#     # Compute Observed Values
+#     append(observed_train, sum(df_train$field == i))
+#     append(observed_train, sum(df_test$field == i))
+#   }
   
-  observed <- rbind(observed_train, observed_test)
-  expected <- rbind(expected_train, expected_test)
+#   observed <- rbind(observed_train, observed_test)
+#   expected <- rbind(expected_train, expected_test)
   
-  chi.sq <- sum((observed - expected)^2 / expected)
-  p <- 1 - pchisq(chi.sq, length(unique(df[field])) - 1)
-  cat("Chi Squared: ", chi.sq, "\nP-Value:")
-}
+#   chi.sq <- sum((observed - expected)^2 / expected)
+#   p <- 1 - pchisq(chi.sq, length(unique(df[field])) - 1)
+#   cat("Chi Squared: ", chi.sq, "\nP-Value:")
+# }
 
 #END HELPER FUNCTIONS
 
-hom_of_prop(jp, jp_train, jp_test, 'employment_type')
+#README
+#So the reason HOP was not working is becuse you called it
+#before the partitions were actually created in this script
+
+#Also, I'm about to make you hate R, but it literally has something
+#already built in for this... gonna use chi-square, look in lines
+#following the assignment of jp_train and jp_test
+# hom_of_prop(jp, jp_train, jp_test, 'employment_type')
 
 #BEGIN DATA PREPARATION
 unique(jp$fraudulent)
@@ -96,8 +106,50 @@ jp_train <- jp[train_indices,]
 jp_test <- jp[!train_indices,]
 
 
+#CHI-SQUARE TEST FOR HOMOGENEITY OF PROPORTIONS
 
-#<TODO> Partition validation
+#Determine which attributes require test
+#print the number of unique values for each column
+sapply(jp, function(x){
+  x %>% unique %>% length %>%
+  return
+})
+
+#features that qualify for the test are employment_type,
+#industry, func, min_salary_binned, max_salary_binned, required_exp_num
+# and sal_range_binned
+would_chi_square <- c("employment_type", "industry", "func", 
+                      "min_salary_binned", "required_exp_num", 
+                      "sal_range_binned")
+
+#We define our null hypotheses to be that:
+#the proportions for the values corresponding to the 
+#above attributes differ significantly between the training
+#and testing set
+#We also define our alternative hypothesis to be the logical
+#negation of the null hypothesis
+#The loop below prints column names that pass
+#the test according to the p-value resulting 
+#from chi-square test for HOP
+for(i in would_chi_square){
+  test_result <- table(jp_train[,i]) %>% 
+  rbind(., table(jp_test[,i])) %>%
+  chisq.test
+
+  if(test_result$p.value >= 0.05){
+    print(paste(c("Attribute", i, "passed the test with p-value", test_result$p.value), collapse =" "))
+    print("The p-value is greater than (or equal to) 0.05, so we reject our null hypothesis for this attribute.")
+  }else{
+    print(paste(c("Attribute", i, "failed the test with p-value", test_result$p.value), collapse =" "))
+    print("The p-value is less than 0.05, so we accept our null hypothesis for this attribute.")
+  }
+  #to separate the lines
+  cat("\n")
+}
+
+#As you can see, all suspect attributes pass the test
+
+#<TODO> Cross Validation
 
 #BEGIN DATA RESAMPLING AND REBALANCING
 #rebalance at 50/50 on 'fraudulent' attribute
