@@ -212,3 +212,4 @@ jp$index <- c(1:dim(jp)[1])
 write.csv(jp,'jp_prepared.csv', row.names = F)
 #END DATA PREPARATION
 #END MISSING AND MISLEADING DATA HANDLING
+
