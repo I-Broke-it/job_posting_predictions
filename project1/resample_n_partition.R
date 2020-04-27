@@ -119,13 +119,13 @@ sapply(jp, function(x){
 #industry, func, min_salary_binned, max_salary_binned, required_exp_num
 # and sal_range_binned
 would_chi_square <- c("employment_type", "industry", "func", 
-                      "min_salary_binned", "required_exp_num", 
-                      "sal_range_binned")
+                      "max_salary_binned", "min_salary_binned", 
+                      "required_exp_num", "sal_range_binned")
 
 #We define our null hypotheses to be that:
 #the proportions for the values corresponding to the 
-#above attributes differ significantly between the training
-#and testing set
+#above attributes differ significantly between the training(observed)
+#and original (expected) dataset
 #We also define our alternative hypothesis to be the logical
 #negation of the null hypothesis
 #The loop below prints column names that pass
@@ -133,7 +133,7 @@ would_chi_square <- c("employment_type", "industry", "func",
 #from chi-square test for HOP
 for(i in would_chi_square){
   test_result <- table(jp_train[,i]) %>% 
-  rbind(., table(jp_test[,i])) %>%
+  rbind(., table(jp[,i])) %>%
   chisq.test
 
   if(test_result$p.value >= 0.05){
@@ -149,7 +149,6 @@ for(i in would_chi_square){
 
 #As you can see, all suspect attributes pass the test
 
-#<TODO> Cross Validation
 
 #BEGIN DATA RESAMPLING AND REBALANCING
 #rebalance at 50/50 on 'fraudulent' attribute
@@ -157,6 +156,9 @@ for(i in would_chi_square){
 jp_train <- 
   get_resample(jp_train, 'fraudulent', 1, .4) %>% 
   rbind(jp_train, .)
+
+
+#CROSS VALIDATION WILL BE PERFORMED WITHIN text_svm.R and [insert other models developed here]
 
 #writing training and testing partitions to file
 
