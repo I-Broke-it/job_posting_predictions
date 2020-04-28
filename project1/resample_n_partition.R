@@ -76,6 +76,11 @@ train_indices <- runif(dim(jp)[1]) < .75
 jp_train <- jp[train_indices,]
 jp_test <- jp[!train_indices,]
 
+# T TESTS
+
+# No numeric fields - we are using the binned salary fields in our models.
+
+
 # Z TESTS
 
 # Tests to perform are on telecom., has_logo, has_questions, fraudulent
@@ -83,11 +88,11 @@ z_test_vector <- c("telecommuting", "has_company_logo", "has_questions",
                    "fraudulent")
 
 for (i in z_test_vector) {
-  cat("\n--------------------\nTESTING", i, ":")
+  cat("\n\n--------------------\nTESTING", i, ":")
   z_test(jp_train, jp_test, i)
 }
 
-# All Two-Tailed P values are large, so this works..
+# All Two-Tailed P values are large, so this partition is valid.
 
 #CHI-SQUARE TEST FOR HOMOGENEITY OF PROPORTIONS
 
