@@ -31,38 +31,9 @@ z_test <- function(df_train, df_test, field) {
            sqrt( prop_pooled * (1 - prop_pooled) * 
                   ((1/dim(df_test)[1]) + (1/dim(df_train)[1])) ) )
   
-  cat("Z Score:", z, "\nOne-Tailed P Value:", pnorm(-abs(z)), "\nTwo-Tailed P value: ", (2 * pnorm(-abs(z))))
+  cat("\nZ Score:", z, "\nOne-Tailed P Value:", pnorm(-abs(z)), "\nTwo-Tailed P value: ", (2 * pnorm(-abs(z))))
   return(z)
 }
-
-#README
-#I'm about to make you hate R, it already has something
-#built in for this...skip down to the function call
-# hom_of_prop <- function(df, df_train, df_test, field) {
-  
-#   # Initialize values
-#   expected_train <- c(); expected_test <- c(); observed_train <- c(); observed_test <- c();
-#   n <- dim(df)[1]; n_train <- dim(df_train)[1]; n_test <- dim(df_test)[1];
-  
-#   for (i in unique(df[field])) {
-    
-#     # Compute Expected Values
-#     prop_all <- sum(df$field == i) / n
-#     append(expected_train, prop_all * n_train)
-#     append(expected_test, prop_all * n_test)
-    
-#     # Compute Observed Values
-#     append(observed_train, sum(df_train$field == i))
-#     append(observed_train, sum(df_test$field == i))
-#   }
-  
-#   observed <- rbind(observed_train, observed_test)
-#   expected <- rbind(expected_train, expected_test)
-  
-#   chi.sq <- sum((observed - expected)^2 / expected)
-#   p <- 1 - pchisq(chi.sq, length(unique(df[field])) - 1)
-#   cat("Chi Squared: ", chi.sq, "\nP-Value:")
-# }
 
 #END HELPER FUNCTIONS
 
@@ -105,6 +76,18 @@ train_indices <- runif(dim(jp)[1]) < .75
 jp_train <- jp[train_indices,]
 jp_test <- jp[!train_indices,]
 
+# Z TESTS
+
+# Tests to perform are on telecom., has_logo, has_questions, fraudulent
+z_test_vector <- c("telecommuting", "has_company_logo", "has_questions",
+                   "fraudulent")
+
+for (i in z_test_vector) {
+  cat("\n--------------------\nTESTING", i, ":")
+  z_test(jp_train, jp_test, i)
+}
+
+# All Two-Tailed P values are large, so this works..
 
 #CHI-SQUARE TEST FOR HOMOGENEITY OF PROPORTIONS
 
@@ -114,6 +97,7 @@ sapply(jp, function(x){
   x %>% unique %>% length %>%
   return
 })
+
 
 #features that qualify for the test are employment_type,
 #industry, func, min_salary_binned, max_salary_binned, required_exp_num
