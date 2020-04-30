@@ -9,7 +9,7 @@ library(ggplot2) #plotting library
 library(magrittr) #for using pipes (more concise code, but slightly less explicit)
 library(tableHTML) #for viewing dataframes in browser (I don't like rstudio, sue me)
 
-jp <- read.csv('fake_job_postings.csv')
+jp <- read.csv('./other_data/fake_job_postings.csv')
 
 #BEGIN MISSING AND MISLEADING DATA HANDLING
 
@@ -53,7 +53,7 @@ jp[!acceptable_salary_ranges,]$salary_range %>%
 jp[!acceptable_salary_ranges,]$salary_range  <- NA
 
 #split salary_range on '-' to make min_salary and max_salary columns
-min_max_sal_cols <- jp$salary_range %>% as.character() %>% strsplit(., '-')  
+min_max_sal_cols <- jp$salary_range %>% as.character() %>% strsplit(., '-')
 #preserving corresponding NA's for each column
 min_max_sal_cols[is.na(min_max_sal_cols)] <- list(c(NA, NA))
 
@@ -178,7 +178,6 @@ ggplot(jp[!is.na(jp$max_salary_binned),], aes(max_salary_binned)) + geom_bar(aes
 #<TODO> Adjust binning for any changes regarding outliers
 #END BINNING
 
-#<TODO> categorical classification to numeric
 jp$required_exp_num <- revalue(x= jp$required_experience, replace = c('Not Applicable' = NA, 'Internship' = 1, 'Executive' = 6,
 																					'Entry level' = 2, 'Associate'=3,
 																					'Mid-Senior level' = 4, 'Director' = 5))
@@ -209,7 +208,7 @@ jp$fraudulent %<>% factor
 jp$index <- c(1:dim(jp)[1])
 
 #saving to file
-write.csv(jp,'jp_prepared.csv', row.names = F)
+write.csv(jp,'./other_data/jp_prepared.csv', row.names = F)
 #END DATA PREPARATION
 #END MISSING AND MISLEADING DATA HANDLING
 
