@@ -1,5 +1,5 @@
 jp <- read.csv("./other_data/jp_prepared.csv")
-
+install.packages("tibble")
 library(tm) #to prepare document term matrices for text mining
 library(plyr) #dataframe manipulation library
 library(dplyr) #dataframe manipulation library
@@ -197,6 +197,7 @@ dtm_train %<>% as.data.table()
 #WRITING DTM TRAINING DATA FOR benefits TO FILE
 fwrite(dtm_train, "./text_data/benefits_train_DTM.csv", row.names=F)
 
+
 #SAVING DTM TESTING DATA FOR benefits ATTRIBUTE
 jp.feature_corpus <- jp_test$benefits %>%
                       as.character %>% 
@@ -213,8 +214,10 @@ dtm_test <- jp.feature_corpus %>% DocumentTermMatrix(., control=list(wordLengths
 dtm_test$fraudulent <- jp_test$fraudulent %>% factor
 dtm_test %<>% as.data.table()
 
+
 #WRITING DTM TESTING DATA FOR benefits TO FILE
 fwrite(dtm_test, "./text_data/benefits_test_DTM.csv", row.names=F)
+
 
 #description
 #SAVING DTM TRAINING DATA FOR description ATTRIBUTE
@@ -254,6 +257,32 @@ dtm_test %<>% as.data.table()
 
 #WRITING DTM TESTING DATA FOR description TO FILE
 fwrite(dtm_test, "./text_data/description_test_DTM.csv", row.names=F)
+
+# Finding impactful values in description attribute
+
+dtm_impact_test <- data.table(matrix(nrow=dim(jp_test)[1]))
+dtm_impact_train <- data.table(matrix(nrow=dim(jp_train)[1]))
+
+for (i in colnames(dtm_test)) {
+  # Looking for words that have a significant impact on the target variable
+  if (i == "fraudulent") { break }
+  tab <- table(dtm_test[[i]], dtm_test$fraudulent)
+  freq <- tab[2,2] / (tab[2,1] + tab[2,2])
+  tot <- tab[2,2] + tab[2,1]
+  if (freq > 0.40 && tot > 10) {
+    dtm_impact_train[[i]] <- dtm_train[[i]]
+    dtm_impact_test[[i]] <- dtm_test[[i]]
+  }
+}
+
+dtm_impact_test$V1 <- NULL
+dtm_impact_train$V1 <- NULL
+dtm_impact_test$fraudulent <- dtm_test$fraudulent
+dtm_impact_train$fraudulent <- dtm_train$fraudulent
+
+# Write impactful data to file
+fwrite(dtm_impact_test, "./text_data/impact_description_test_DTM.csv", row.names=F)
+fwrite(dtm_impact_train, "./text_data/impact_description_train_DTM.csv", row.names=F)
 
 #requirements
 #SAVING DTM TRAINING DATA FOR requirements ATTRIBUTE
@@ -334,7 +363,6 @@ dtm_test %<>% as.data.table()
 
 #WRITING DTM TESTING DATA FOR company_profile TO FILE
 fwrite(dtm_test, "./text_data/company_profiles_test_DTM.csv", row.names=F)
-
 
 
 
