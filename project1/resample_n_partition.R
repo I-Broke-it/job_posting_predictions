@@ -194,7 +194,7 @@ dtm_train %<>% as.data.table()
 
 fwrite(dtm_train, "./text_data/description_train_DTM.csv", row.names=F)
 
-jp.feature_corpus <- jp_test$benefits %>%
+jp.feature_corpus <- jp_test$description %>%
                       as.character %>% 
                       stri_replace_all_regex(str=., pattern = "[^A-Za-z\\s]+", replacement = "")
 
