@@ -9,7 +9,7 @@ library(ggplot2) #plotting library
 library(magrittr) #for using pipes (more concise code, but slightly less explicit)
 library(tableHTML) #for viewing dataframes in browser (I don't like rstudio, sue me)
 
-jp <- read.csv('fake_job_postings.csv')
+jp <- read.csv('./other_data/fake_job_postings.csv')
 
 #BEGIN MISSING AND MISLEADING DATA HANDLING
 
@@ -208,7 +208,7 @@ jp$fraudulent %<>% factor
 jp$index <- c(1:dim(jp)[1])
 
 #saving to file
-write.csv(jp,'jp_prepared.csv', row.names = F)
+write.csv(jp,'./other_data/jp_prepared.csv', row.names = F)
 #END DATA PREPARATION
 #END MISSING AND MISLEADING DATA HANDLING
 

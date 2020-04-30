@@ -6,7 +6,7 @@ library(dplyr) #dataframe manipulation library
 library(ggplot2) #plotting library. I like Rstudio, sue me
 library(magrittr)
 
-jp <- read.csv("jp_prepared.csv")
+jp <- read.csv("./other_data/jp_prepared.csv")
 
 ##### EXPLORATORY PHASE #####
 
@@ -147,5 +147,5 @@ table(jp$well_defined_job, jp$fraudulent)
 table(jp$sorta_defined_job, jp$fraudulent)
 # This field is a very big indicator of if a job is fraudulent, as stated previously.
 
-jp <- write.csv(jp,'jp_prepared.csv', row.names = F)
+jp <- write.csv(jp,'./other_data/jp_prepared.csv', row.names = F)
 

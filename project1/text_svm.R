@@ -36,8 +36,8 @@ clean_corpus <- function(corpus){
 #assuming train and test csv's exist
 #and that they are properly balanced 
 #and valid partitions
-jp_train <- read.csv('jp_train.csv')
-jp_test <- read.csv('jp_test.csv')
+jp_train <- read.csv('./other_data/jp_train.csv')
+jp_test <- read.csv('./other_data/jp_test.csv')
 
 
 #columns eligible for text mining are benefits, description, requirements and company_profiles
