@@ -1,8 +1,12 @@
 jp <- read.csv("jp_prepared.csv")
 
+library(tm) #to prepare document term matrices for text mining
 library(plyr) #dataframe manipulation library
 library(dplyr) #dataframe manipulation library
-library(magrittr) #for using pipes (more concise code, but slightly less explicit)
+library(magrittr) #for using pipes (more concise code, but slightly less explicit))
+library(ggplot2) #for plotting histograms of tf-idf values across DTM terms
+library(stringi) #for regex pattern matching and replacement
+library(data.table) #for memory and speed optimization
 
 #BEGIN HELPER FUNCTIONS
 #returns new sample from given df, where p is 
@@ -15,6 +19,14 @@ get_resample <- function(df, resampled_feature, rare_val, p){
 	x <- ((p*num_records) - num_rares)/(1-p)
 	resample_idx <- sample(x = rares_idx, size = x, replace=TRUE)
 	return(df[resample_idx,])
+}
+
+#returns tf-idf value for column x
+#may not be necessary
+get_tf_idf <- function(x){
+  (length(x)/length(x[x>0])) %>%
+  log2 %>%
+  return
 }
 
 # Prints Z score and P value, returns Z score. Assumes int fields are 0: false and 1: true.
@@ -158,7 +170,15 @@ jp_train <-
   rbind(jp_train, .)
 
 
-#CROSS VALIDATION WILL BE PERFORMED WITHIN text_svm.R and [insert other models developed here]
+# col_tf_idfs <- sapply(dtm, get_tf_idf)
+# col_tf_idfs %>% unique %>% sort(decreasing=F)
+
+# #plotting continuous distribution of tf-idf values across dtm terms (columns)
+# ggplot(as.data.frame(col_tf_idfs)) + geom_histogram(aes(x=col_tf_idfs))
+
+
+
+#CROSS VALIDATION WILL BE PERFORMED WITHIN text_svm.R and Random Forests
 
 #writing training and testing partitions to file
 
