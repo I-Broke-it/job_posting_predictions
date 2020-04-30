@@ -177,6 +177,50 @@ jp_train <-
 # #plotting continuous distribution of tf-idf values across dtm terms (columns)
 # ggplot(as.data.frame(col_tf_idfs)) + geom_histogram(aes(x=col_tf_idfs))
 
+#benefits
+#SAVING DTM TRAINING DATA FOR benefits ATTRIBUTE
+jp.feature_corpus <- jp_train$benefits %>%
+                      as.character %>% 
+                      stri_replace_all_regex(str=., pattern = "[^A-Za-z\\s]+", replacement = "")
+
+jp.feature_corpus %<>% VectorSource 
+jp.feature_corpus %<>% VCorpus 
+jp.feature_corpus %<>% clean_corpus
+gc()
+
+dtm_train <- jp.feature_corpus %>% DocumentTermMatrix(., control=list(wordLengths=c(1, Inf))) %>% 
+                         as.matrix %>% as.data.frame
+
+dtm_train$fraudulent <- jp_train$fraudulent %>% factor
+dtm_train %<>% as.data.table()
+
+#WRITING DTM TRAINING DATA FOR benefits TO FILE
+fwrite(dtm_train, "./text_data/benefits_train_DTM.csv", row.names=F)
+
+
+#SAVING DTM TESTING DATA FOR benefits ATTRIBUTE
+jp.feature_corpus <- jp_test$benefits %>%
+                      as.character %>% 
+                      stri_replace_all_regex(str=., pattern = "[^A-Za-z\\s]+", replacement = "")
+
+jp.feature_corpus %<>% VectorSource 
+jp.feature_corpus %<>% VCorpus 
+jp.feature_corpus %<>% clean_corpus
+gc()
+
+dtm_test <- jp.feature_corpus %>% DocumentTermMatrix(., control=list(wordLengths=c(1, Inf))) %>% 
+                         as.matrix %>% as.data.frame
+
+dtm_test$fraudulent <- jp_test$fraudulent %>% factor
+dtm_test %<>% as.data.table()
+
+
+#WRITING DTM TESTING DATA FOR benefits TO FILE
+fwrite(dtm_test, "./text_data/benefits_test_DTM.csv", row.names=F)
+
+
+#description
+#SAVING DTM TRAINING DATA FOR description ATTRIBUTE
 jp.feature_corpus <- jp_train$description %>%
                       as.character %>% 
                       stri_replace_all_regex(str=., pattern = "[^A-Za-z\\s]+", replacement = "")
@@ -185,15 +229,17 @@ jp.feature_corpus %<>% VectorSource
 jp.feature_corpus %<>% VCorpus 
 jp.feature_corpus %<>% clean_corpus
 gc()
-#create a document term matrix for the benefits attribute
+
 dtm_train <- jp.feature_corpus %>% DocumentTermMatrix(., control=list(wordLengths=c(1, Inf))) %>% 
                          as.matrix %>% as.data.frame
 
 dtm_train$fraudulent <- jp_train$fraudulent %>% factor
 dtm_train %<>% as.data.table()
 
+#WRITING DTM TRAINING DATA FOR description TO FILE
 fwrite(dtm_train, "./text_data/description_train_DTM.csv", row.names=F)
 
+#SAVING DTM TESTING DATA FOR description ATTRIBUTE
 jp.feature_corpus <- jp_test$description %>%
                       as.character %>% 
                       stri_replace_all_regex(str=., pattern = "[^A-Za-z\\s]+", replacement = "")
@@ -202,13 +248,17 @@ jp.feature_corpus %<>% VectorSource
 jp.feature_corpus %<>% VCorpus 
 jp.feature_corpus %<>% clean_corpus
 gc()
-#create a document term matrix for the benefits attribute
+
 dtm_test <- jp.feature_corpus %>% DocumentTermMatrix(., control=list(wordLengths=c(1, Inf))) %>% 
                          as.matrix %>% as.data.frame
 
 dtm_test$fraudulent <- jp_test$fraudulent %>% factor
 dtm_test %<>% as.data.table()
+
+#WRITING DTM TESTING DATA FOR description TO FILE
 fwrite(dtm_test, "./text_data/description_test_DTM.csv", row.names=F)
+
+# Finding impactful values in description attribute
 
 dtm_impact_test <- data.table(matrix(nrow=dim(jp_test)[1]))
 dtm_impact_train <- data.table(matrix(nrow=dim(jp_train)[1]))
@@ -225,15 +275,99 @@ for (i in colnames(dtm_test)) {
   }
 }
 
+
 dtm_impact_test$fraudulent <- dtm_test$fraudulent
 dtm_impact_train$fraudulent <- dtm_train$fraudulent
 
 fwrite(dtm_impact_test, "./text_data/impact_description_test_DTM.csv", row.names=F)
 fwrite(dtm_impact_train, "./text_data/impact_description_train_DTM.csv", row.names=F)
 
+#requirements
+#SAVING DTM TRAINING DATA FOR requirements ATTRIBUTE
+jp.feature_corpus <- jp_train$requirements %>%
+                      as.character %>% 
+                      stri_replace_all_regex(str=., pattern = "[^A-Za-z\\s]+", replacement = "")
+
+jp.feature_corpus %<>% VectorSource 
+jp.feature_corpus %<>% VCorpus 
+jp.feature_corpus %<>% clean_corpus
+gc()
+
+dtm_train <- jp.feature_corpus %>% DocumentTermMatrix(., control=list(wordLengths=c(1, Inf))) %>% 
+                         as.matrix %>% as.data.frame
+
+dtm_train$fraudulent <- jp_train$fraudulent %>% factor
+dtm_train %<>% as.data.table()
+
+#WRITING DTM TRAINING DATA FOR requirements TO FILE
+fwrite(dtm_train, "./text_data/requirements_train_DTM.csv", row.names=F)
+
+#SAVING DTM TESTING DATA FOR requirements ATTRIBUTE
+jp.feature_corpus <- jp_test$requirements %>%
+                      as.character %>% 
+                      stri_replace_all_regex(str=., pattern = "[^A-Za-z\\s]+", replacement = "")
+
+jp.feature_corpus %<>% VectorSource 
+jp.feature_corpus %<>% VCorpus 
+jp.feature_corpus %<>% clean_corpus
+gc()
+
+dtm_test <- jp.feature_corpus %>% DocumentTermMatrix(., control=list(wordLengths=c(1, Inf))) %>% 
+                         as.matrix %>% as.data.frame
+
+dtm_test$fraudulent <- jp_test$fraudulent %>% factor
+dtm_test %<>% as.data.table()
+
+#WRITING DTM TESTING DATA FOR requirements TO FILE
+fwrite(dtm_test, "./text_data/requirements_test_DTM.csv", row.names=F)
+
+
+
+#company_profiles
+#SAVING DTM TRAINING DATA FOR company_profile ATTRIBUTE
+jp.feature_corpus <- jp_train$company_profile %>%
+                      as.character %>% 
+                      stri_replace_all_regex(str=., pattern = "[^A-Za-z\\s]+", replacement = "")
+
+jp.feature_corpus %<>% VectorSource 
+jp.feature_corpus %<>% VCorpus 
+jp.feature_corpus %<>% clean_corpus
+gc()
+
+dtm_train <- jp.feature_corpus %>% DocumentTermMatrix(., control=list(wordLengths=c(1, Inf))) %>% 
+                         as.matrix %>% as.data.frame
+
+dtm_train$fraudulent <- jp_train$fraudulent %>% factor
+dtm_train %<>% as.data.table()
+
+#WRITING DTM TRAINING DATA FOR company_profile TO FILE
+fwrite(dtm_train, "./text_data/company_profiles_train_DTM.csv", row.names=F)
+
+#SAVING DTM TESTING DATA FOR company_profile ATTRIBUTE
+jp.feature_corpus <- jp_test$company_profile %>%
+                      as.character %>% 
+                      stri_replace_all_regex(str=., pattern = "[^A-Za-z\\s]+", replacement = "")
+
+jp.feature_corpus %<>% VectorSource 
+jp.feature_corpus %<>% VCorpus 
+jp.feature_corpus %<>% clean_corpus
+gc()
+
+dtm_test <- jp.feature_corpus %>% DocumentTermMatrix(., control=list(wordLengths=c(1, Inf))) %>% 
+                         as.matrix %>% as.data.frame
+
+dtm_test$fraudulent <- jp_test$fraudulent %>% factor
+dtm_test %<>% as.data.table()
+
+#WRITING DTM TESTING DATA FOR company_profile TO FILE
+fwrite(dtm_test, "./text_data/company_profiles_test_DTM.csv", row.names=F)
+
+
+
+
 #CROSS VALIDATION WILL BE PERFORMED WITHIN text_svm.R and Random Forests
 
-#writing training and testing partitions to file
+#WRITING TRAINING AND TESTING PARTITIONS TO FILE
 
 write.csv(jp_train, './other_data/jp_train.csv', row.names=F)
 write.csv(jp_test, './other_data/jp_test.csv', row.names=F)
