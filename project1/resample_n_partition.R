@@ -275,10 +275,12 @@ for (i in colnames(dtm_test)) {
   }
 }
 
-
+dtm_impact_test$V1 <- NULL
+dtm_impact_train$V1 <- NULL
 dtm_impact_test$fraudulent <- dtm_test$fraudulent
 dtm_impact_train$fraudulent <- dtm_train$fraudulent
 
+# Write impactful data to file
 fwrite(dtm_impact_test, "./text_data/impact_description_test_DTM.csv", row.names=F)
 fwrite(dtm_impact_train, "./text_data/impact_description_train_DTM.csv", row.names=F)
 
@@ -361,7 +363,6 @@ dtm_test %<>% as.data.table()
 
 #WRITING DTM TESTING DATA FOR company_profile TO FILE
 fwrite(dtm_test, "./text_data/company_profiles_test_DTM.csv", row.names=F)
-
 
 
 
