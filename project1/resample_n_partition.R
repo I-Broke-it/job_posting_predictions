@@ -1,4 +1,4 @@
-jp <- read.csv("jp_prepared.csv")
+jp <- read.csv("./other_data/jp_prepared.csv")
 
 library(tm) #to prepare document term matrices for text mining
 library(plyr) #dataframe manipulation library
@@ -20,6 +20,18 @@ get_resample <- function(df, resampled_feature, rare_val, p){
 	resample_idx <- sample(x = rares_idx, size = x, replace=TRUE)
 	return(df[resample_idx,])
 }
+
+clean_corpus <- function(corpus){
+  corpus %<>% tm_map(., removeNumbers)
+  corpus %<>% tm_map(., stripWhitespace)
+  corpus %<>% tm_map(., removePunctuation)
+  corpus %<>% tm_map(., content_transformer(tolower))
+  corpus %<>% tm_map(., removeWords, stopwords("en"))
+  corpus %<>% tm_map(., content_transformer(stemDocument), language = "english")
+  
+  return(corpus)
+}
+
 
 #returns tf-idf value for column x
 #may not be necessary
@@ -165,11 +177,44 @@ jp_train <-
 # #plotting continuous distribution of tf-idf values across dtm terms (columns)
 # ggplot(as.data.frame(col_tf_idfs)) + geom_histogram(aes(x=col_tf_idfs))
 
+jp.feature_corpus <- jp_train$description %>%
+                      as.character %>% 
+                      stri_replace_all_regex(str=., pattern = "[^A-Za-z\\s]+", replacement = "")
 
+jp.feature_corpus %<>% VectorSource 
+jp.feature_corpus %<>% VCorpus 
+jp.feature_corpus %<>% clean_corpus
+gc()
+#create a document term matrix for the benefits attribute
+dtm_train <- jp.feature_corpus %>% DocumentTermMatrix(., control=list(wordLengths=c(1, Inf))) %>% 
+                         as.matrix %>% as.data.frame
+
+dtm_train$fraudulent <- jp_train$fraudulent %>% factor
+dtm_train %<>% as.data.table()
+
+fwrite(dtm_train, "./text_data/description_train_DTM.csv", row.names=F)
+
+jp.feature_corpus <- jp_test$benefits %>%
+                      as.character %>% 
+                      stri_replace_all_regex(str=., pattern = "[^A-Za-z\\s]+", replacement = "")
+
+jp.feature_corpus %<>% VectorSource 
+jp.feature_corpus %<>% VCorpus 
+jp.feature_corpus %<>% clean_corpus
+gc()
+#create a document term matrix for the benefits attribute
+dtm_test <- jp.feature_corpus %>% DocumentTermMatrix(., control=list(wordLengths=c(1, Inf))) %>% 
+                         as.matrix %>% as.data.frame
+
+dtm_test$fraudulent <- jp_test$fraudulent %>% factor
+dtm_test %<>% as.data.table()
+
+
+fwrite(dtm_test, "./text_data/description_test_DTM.csv", row.names=F)
 
 #CROSS VALIDATION WILL BE PERFORMED WITHIN text_svm.R and Random Forests
 
 #writing training and testing partitions to file
 
-write.csv(jp_train, 'jp_train.csv', row.names=F)
-write.csv(jp_test, 'jp_test.csv', row.names=F)
+write.csv(jp_train, './other_data/jp_train.csv', row.names=F)
+write.csv(jp_test, './other_data/jp_test.csv', row.names=F)

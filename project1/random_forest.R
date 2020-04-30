@@ -32,9 +32,8 @@ clean_corpus <- function(corpus){
   return(corpus)
 }
 
-jp <- fread('jp_prepared.csv')
-# jp_train <- read.csv('jp_train.csv')
-# jp_test <- read.csv('jp_test.csv')
+jp <- fread('./other_data/jp_prepared.csv')
+
 
 #columns eligible for text mining are benefits, description, requirements and company_profiles
 
