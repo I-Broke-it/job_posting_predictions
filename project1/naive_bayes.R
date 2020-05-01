@@ -4,16 +4,22 @@
 rm(list = ls())
 gc()
 
+install.packages("tidyverse")
 # libraries and installs
 library(ggplot2)
 library(e1071)
 library(magrittr)
 
-# Load train, test, and full sets
-jp <- read.csv('jp_prepared.csv')
-jp_train <- read.csv('jp_train.csv')
-jp_test <- read.csv('jp_test.csv')
+# Load train, test, and full sets. This might take a VERY long time,
+# depending on how much RAM is in your system.
+jp <- read.csv('./other_data/jp_prepared.csv')
+jp_train_notext <- read.csv('./other_data/jp_train.csv')
+jp_test_notext <- read.csv('./other_data/jp_test.csv')
+text_class_train <- read.csv("./text_data/impact_description_train_DTM.csv")
+text_class_test <- read.csv("./text_data/impact_description_test_DTM.csv")
 
+jp_train <- cbind(jp_train_notext, text_class_train)
+jp_test <- cbind(jp_test_notext, text_class_test)
 
 
 ##############################
@@ -119,6 +125,23 @@ ypred_super <- predict(object = nb_super_all, newdata = jp_test)
 table(jp_test$fraudulent, ypred_super)
 # 81%, just beats out the baseline.
 
+
+# Text fields
+nb_text <- naiveBayes(formula = fraudulent ~ industry + func + employment_type 
+                      + required_education + required_experience
+                      + max_salary_binned + sorta_defined_job
+                      + department + decid + discoveri + fullservic + hazard
+                      + inquir + mold + offshor + overviewak + petroleum
+                      + valuesw + wifi + worker, data = jp_train)
+
+nb_text
+ypred_text <- predict(object = nb_text, newdata = jp_test)
+table(jp_test$fraudulent, ypred_text)
+# High accuracy, but at the sacrifice of recall. A very expensive model though,
+# false negatives are abundant. If you're looking for a very accuract model
+# though, this is the one. It just barely misses out on the all positive
+# model.
+
 ############################
 ##### EVALUATION PHASE #####
 ############################
@@ -152,6 +175,12 @@ precision <- tabMem[2,2]/tabMem[3,2]
 
 recall <- sensitivity
 # also 81%.
+
+cat("Accuracy: ", acc)
+cat("Error rate: ", err)
+cat("Sensitivity/Recall: ", sensitivity)
+cat("Specificity: ", specificity)
+cat("Precision: ", precision)
 
 # In general, this model meets our cost metrics. False Negatives are deadly,
 # as they mean giving out PII to malicious individuals. Our goal here is to 
