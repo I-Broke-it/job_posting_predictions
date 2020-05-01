@@ -1,14 +1,16 @@
 Implemented by Francisco Baca and Alexander Schulz
 
-Through the use of a text classifier as well as C5 decision trees and naive Bayes to see if we can make accurate predictions
-of which job postings in our dataset are fake and we will verify the validity of our results through model evaluation techniques. 
-Given that this is a text-rich dataset, we are taking the opportunity to perform SVM text classification on the data to find the
-most accurate text-rich predictor attribute. Due to issues in resolving the curse of dimensionality in a timely fashion, SVM is
+Through the use of C5 decision trees, naive Bayes, as well as an (untested) SVM classifier, want to see if we can make accurate
+predictions of which job postings in our dataset are fake and we will verify the validity of our results through model evaluation
+techniques. Given that this is a text-rich dataset, we are taking the opportunity to perform SVM text classification on the data 
+to find the most accurate text-rich predictor attribute. Due to issues in resolving the curse of dimensionality in a timely fashion, SVM is
 yet to be tested on the dataset.
 
   #CLARIFICATION FOR THE GRADER
   The files developed for CS 4331 project 2 are resample_n_partition.R, text_svm.R, naive_bayes.R,
   text_C5.R and any csv files they may produce. All other files correspond to work done for project 1.
+  Most of these scripts take a considerable amount of time to process the data, they are not stuck, 
+  they are just slow due to the large amounts of data. 
 
 - data_preparation uses original dataset file "fake_job_postings.csv" in order to perform its function. 
 - exploratory.R depends on and alters the cleaned and prepared dataset file "jp_prepared.csv" produced 
