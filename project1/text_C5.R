@@ -15,7 +15,6 @@ library(C50)
 library(data.table) #for memory efficiency
 #library(doParallel)
 
-#TOO BIG FOR C5 AND MY CURRENT HARDWARE, RESULTS IN STACK OVERFLOWS AND SEG FAULTS
 #performing C5 on description attribute
 cat("performing C5 on description attribute\n\n")
 train_dtm <- fread("./text_data/description_train_DTM.csv")
